@@ -3,6 +3,8 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 3000
+const { connectDB } = require('./app/db')
+
 
 app.use(express.json())
 app.use('/auth', require('./app/auth'))
@@ -18,6 +20,12 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).json({ error: err.message || 'Internal Server Error' })
+})
+
+connectDB().then(() => {
+  app.listen(process.env.PORT || 3000, () =>
+    console.log(`Running on http://localhost:${process.env.PORT || 3000}`)
+  )
 })
 
 app.get('/', (req, res) => {
