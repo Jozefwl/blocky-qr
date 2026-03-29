@@ -1,0 +1,111 @@
+opencollection: 1.0.0
+info:
+  name: BlockyQR
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ''
+      port: ''
+      auth:
+        username: ''
+        password: ''
+      bypassProxy: ''
+  environments:
+    - name: Main
+      variables:
+        - name: server_uri
+          value: localhost:3000
+items:
+  - info:
+      name: 404 test
+      type: http
+      seq: 2
+    http:
+      method: GET
+      url: http://{{server_uri}}/aiosdfniaug
+      auth: inherit
+    settings:
+      encodeUrl: true
+      timeout: 0
+      followRedirects: true
+      maxRedirects: 5
+  - info:
+      name: Main Get
+      type: http
+      seq: 1
+    http:
+      method: GET
+      url: http://{{server_uri}}/
+      auth: inherit
+    settings:
+      encodeUrl: true
+      timeout: 0
+      followRedirects: true
+      maxRedirects: 5
+  - info:
+      name: qr-app
+      type: folder
+      seq: 4
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: getReceipt
+          type: http
+          seq: 1
+        http:
+          method: POST
+          url: http://{{server_uri}}/qr-app/getReceipt
+          body:
+            type: json
+            data: |-
+              {
+                "receiptId":"O-50DF7CADC7244B699F7CADC7241B69AD"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: qr-aggregator
+      type: folder
+      seq: 3
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: calcStatsAsync
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: http://{{server_uri}}/qr-aggregator/calcStatsAsync
+          body:
+            type: json
+            data: |-
+              {
+                "frequency": "h",
+                "timeInterval":{
+                  "start":"2026-03-14T07:39:06Z",
+                  "end":"2026-03-14T09:39:06Z"
+                },
+                "cmds":["cmd1"]
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+bundled: true
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git
+    exportedAt: '2026-03-29T20:50:13.388Z'
+    exportedUsing: Bruno
