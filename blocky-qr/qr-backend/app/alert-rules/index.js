@@ -1,0 +1,17 @@
+const router = require('express').Router()
+const { alertRulesSchema } = require('./validation')
+
+router.post('/test', async (req, res, next) => {
+  try {
+    // const { error, value } = alertRulesSchema.validate(req.body, { abortEarly: false })
+    // if (error) {
+    //   return res.status(400).json({ errors: error.details.map(d => d.message) })
+    // }
+
+    res.json({ status: 'OK', message: "alert-rules" })
+  } catch (err) {
+    next(err)
+  }
+})
+
+module.exports = router
