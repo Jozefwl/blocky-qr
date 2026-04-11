@@ -1,14 +1,38 @@
 const router = require('express').Router()
-const { alertsSchema } = require('./validation')
 
-router.post('/test', async (req, res, next) => {
+// GET /alerts — list all alerts
+router.get('/', async (req, res, next) => {
   try {
-    // const { error, value } = alertsSchema.validate(req.body, { abortEarly: false })
-    // if (error) {
-    //   return res.status(400).json({ errors: error.details.map(d => d.message) })
-    // }
+    // TODO: fetch all alerts from DB
+    res.json({ status: 'OK', data: [] })
+  } catch (err) {
+    next(err)
+  }
+})
 
-    res.json({ status: 'OK', message: "alerts" })
+// GET /alerts/:id — get a single alert
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    // TODO: fetch alert by id from DB
+    // if (!alert) return res.status(404).json({ error: 'Not found' })
+
+    res.json({ status: 'OK', data: { id } })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /alerts/:id/acknowledge — acknowledge an alert
+router.post('/:id/acknowledge', async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    // TODO: find alert by id and set status to acknowledged
+    // if (!alert) return res.status(404).json({ error: 'Not found' })
+
+    res.json({ status: 'OK', message: 'Alert acknowledged', data: { id } })
   } catch (err) {
     next(err)
   }
