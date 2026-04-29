@@ -7,9 +7,20 @@ const { connectDB } = require('./app/db')
 
 
 app.use(express.json())
+
 app.use('/auth', require('./app/auth'))
 app.use('/qr-app', require('./app/qr-app'))
 app.use('/qr-aggregator', require('./app/qr-aggregator'))
+app.use('/alert-rules', require('./app/alert-rules'))
+app.use('/alerts', require('./app/alerts'))
+app.use('/datasets', require('./app/datasets'))
+app.use('/pipelines', require('./app/pipelines'))
+app.use('/runs', require('./app/runs'))
+
+
+app.get('/', (req, res) => {
+  res.json( {message: "Server QR is running."})
+})
 
 // 404 - route not found
 app.use((req, res) => {
@@ -26,10 +37,6 @@ connectDB().then(() => {
   app.listen(process.env.PORT || 3000, () =>
     console.log(`Running on http://localhost:${process.env.PORT || 3000}`)
   )
-})
-
-app.get('/', (req, res) => {
-  res.json( {message: "Server QR is running."})
 })
 
 

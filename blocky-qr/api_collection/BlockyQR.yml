@@ -45,32 +45,6 @@ items:
       followRedirects: true
       maxRedirects: 5
   - info:
-      name: qr-app
-      type: folder
-      seq: 4
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: getReceipt
-          type: http
-          seq: 1
-        http:
-          method: POST
-          url: http://{{server_uri}}/qr-app/getReceipt
-          body:
-            type: json
-            data: |-
-              {
-                "receiptId":"O-50DF7CADC7244B699F7CADC7241B69AD"
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
       name: qr-aggregator
       type: folder
       seq: 3
@@ -101,11 +75,306 @@ items:
           timeout: 0
           followRedirects: true
           maxRedirects: 5
+  - info:
+      name: qr-app
+      type: folder
+      seq: 4
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: getReceipt
+          type: http
+          seq: 1
+        http:
+          method: POST
+          url: http://{{server_uri}}/qr-app/getReceipt
+          body:
+            type: json
+            data: |-
+              {
+                "receiptId":"O-50DF7CADC7244B699F7CADC7241B69AD"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: alert-rules
+      type: folder
+      seq: 6
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Get all rules
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/alert-rules/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get rule by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/alert-rules/812928
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make Rule
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/alert-rules/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Delete rule by ID
+          type: http
+          seq: 5
+        http:
+          method: DELETE
+          url: http://{{server_uri}}/alert-rules/812928
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Patch rule by ID
+          type: http
+          seq: 4
+        http:
+          method: PATCH
+          url: http://{{server_uri}}/alert-rules/812928
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: datasets
+      type: folder
+      seq: 7
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Get all datasets
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/datasets/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make dataset
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/datasets/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get dataset by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/datasets/6969
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: alerts
+      type: folder
+      seq: 5
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Get all alerts
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get alert by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts/1337
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Acknowledge alert
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/alerts/1337/acknowledge
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: pipelines
+      type: folder
+      seq: 8
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Get all pipelines
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/pipelines/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get pipeline by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/pipelines/456
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make pipeline
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/pipelines/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Manual trigger pipeline by ID
+          type: http
+          seq: 4
+        http:
+          method: POST
+          url: http://{{server_uri}}/pipelines/345/run
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: runs
+      type: folder
+      seq: 9
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Get all runs
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/runs/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get run by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/runs/678
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Patch run state by ID
+          type: http
+          seq: 3
+        http:
+          method: PATCH
+          url: http://{{server_uri}}/runs/678
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
 bundled: true
 extensions:
   bruno:
     ignore:
       - node_modules
       - .git
-    exportedAt: '2026-03-29T20:50:13.388Z'
+    exportedAt: '2026-04-11T09:17:15.524Z'
     exportedUsing: Bruno
