@@ -29,11 +29,44 @@ async function calcStats(msg) {
         }
       }
     },
-    { $group: { _id: '$action', count: { $sum: 1 }, avgStatus: { $avg: '$status' } } },
-    { $sort: { count: -1 } }
+    {
+      $group: {
+        _id: '$action',
+        endpoint:         { $first: '$endpoint' },
+        totalCalls:       { $sum: 1 },
+        successfulCalls:  { $sum: { $cond: [{ $and: [{ $gte: ['$status', 200] }, { $lte: ['$status', 299] }] }, 1, 0] } },
+        unsuccessfulCalls:{ $sum: { $cond: [{ $or:  [{ $lt:  ['$status', 200] }, { $gt:  ['$status', 299] }] }, 1, 0] } }
+      }
+    },
+    { $sort: { totalCalls: -1 } }
   ]).toArray()
 
-  console.log(`[${runId}] Aggregation done. ${results.length} groups found.`)
+  // shape into { actionName: { successfulCalls, unsuccessfulCalls, totalCalls } }
+  const shaped = {}
+  for (const r of results) {
+    shaped[r._id] = {
+      endpoint:          r.endpoint,
+      successfulCalls:   r.successfulCalls,
+      unsuccessfulCalls: r.unsuccessfulCalls,
+      totalCalls:        r.totalCalls
+    }
+  }
+
+  // save/overwrite result document in computationstats collection
+  await db.collection('computationstats').findOneAndUpdate(
+    { runId },
+    {
+      $set: {
+        runId,
+        timeInterval,
+        calculatedAt: new Date().toISOString(),
+        stats: shaped
+      }
+    },
+    { upsert: true }
+  )
+
+  console.log(`[${runId}] Aggregation saved. ${results.length} actions found.`)
   return results
 }
 
