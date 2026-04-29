@@ -1,39 +1,81 @@
 const router = require('express').Router()
+const { ObjectId } = require('mongodb')
+const { patchRunSchema } = require('./validation')
+const JobRun   = require('./model')
+const Pipeline = require('../pipelines/model')
 
-// GET /runs — list all runs
+// GET /runs
 router.get('/', async (req, res, next) => {
   try {
-    // TODO: fetch all from DB
-    res.json({ status: 'OK', data: [] })
+    const runs = await JobRun.find({})
+    res.json({ status: 'OK', data: runs })
   } catch (err) {
     next(err)
   }
 })
 
-// GET /runs/:id — get a single run
+// GET /runs/:id
 router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid run id' })
+    }
 
-    // TODO: fetch by id from DB
-    // if (!run) return res.status(404).json({ error: 'Not found' })
+    const run = await JobRun.findById(id).lean()
+    if (!run) {
+      return res.status(404).json({ error: 'Run not found' })
+    }
 
-    res.json({ status: 'OK', data: { id } })
+    res.json({ status: 'OK', data: run })
   } catch (err) {
     next(err)
   }
 })
 
-// PATCH /runs/:id — manually patch run state
+// PATCH /runs/:id
 router.patch('/:id', async (req, res, next) => {
   try {
     const { id } = req.params
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid run id' })
+    }
 
-    // TODO: fetch pipeline by id from DB
-    // if (!pipeline) return res.status(404).json({ error: 'Not found' })
+    const run = await JobRun.findById(id)
+    if (!run) {
+      return res.status(404).json({ error: 'Run not found' })
+    }
 
-    // TODO: create a new run for this pipeline
-    res.status(202).json({ status: 'OK', message: 'Run patched', data: { runId: id } })
+    // guard: already in final state
+    if (run.status === 'successful' || run.status === 'error') {
+      return res.status(409).json({ error: `Run already in final state: ${run.status}` })
+    }
+
+    const { error, value } = patchRunSchema.validate(req.body, { abortEarly: false })
+    if (error) {
+      return res.status(400).json({ errors: error.details.map(d => d.message) })
+    }
+
+    const isFinal = value.status === 'successful' || value.status === 'error'
+
+    const updates = {
+      status:           value.status,
+      errorMessage:     value.errorMessage     ?? run.errorMessage,
+      processedRecords: value.processedRecords ?? run.processedRecords,
+      finishTime:       isFinal
+                          ? (value.finishTime ?? new Date().toISOString())
+                          : run.finishTime
+    }
+
+    const updated = await JobRun.findByIdAndUpdate(id, updates, { new: true })
+
+    // sync lastStatus on pipeline
+    await Pipeline.findByIdAndUpdate(run.pipelineOid, {
+      lastStatus:  value.status,
+      lastRunTime: updates.finishTime ?? run.startTime
+    })
+
+    res.json({ status: 'OK', message: 'Run updated', data: updated })
   } catch (err) {
     next(err)
   }
