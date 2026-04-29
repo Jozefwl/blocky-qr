@@ -83,15 +83,15 @@ router.post('/:id/run', async (req, res, next) => {
 
     // create JobRun
     const run = await JobRun.create({
-      pipelineId:      pipeline._id,
+      pipelineOid:     pipeline._id.toString(),
       pipelineVersion: pipeline.pipelineVersion,
       status:          'running',
-      startedAt:       new Date().toISOString()
+      startTime:       new Date().toISOString()
     })
 
     // update pipeline lastRunTime + lastStatus
     await Pipeline.findByIdAndUpdate(id, {
-      lastRunTime: run.startedAt,
+      lastRunTime: run.startTime,
       lastStatus:  'running'
     })
 
