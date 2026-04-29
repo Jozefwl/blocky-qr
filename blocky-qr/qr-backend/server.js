@@ -35,11 +35,7 @@ app.use((err, req, res, next) => {
 
 connectDB().then(() => {
   app.listen(process.env.PORT || 3000, () =>
-    console.log(`Running on http://localhost:${process.env.PORT || 3000}`)
+    console.log(`Server ready to accept connections on http://localhost:${process.env.PORT || 3000}`)
   )
 })
 
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
-})
