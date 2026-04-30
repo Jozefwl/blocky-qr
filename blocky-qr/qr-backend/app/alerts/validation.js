@@ -1,12 +1,9 @@
 const Joi = require('joi')
 
-const alertsSchema = Joi.object({
-//   frequency: Joi.string().valid('h', 'min', 'd').required(),
-//   timeInterval: Joi.object({
-//     start: Joi.string().isoDate().required(),
-//     end: Joi.string().isoDate().required()
-//   }).required(),
-//   cmds: Joi.array().items(Joi.string()).min(1).required()
+/** Body for GET /alerts — {} = all; { pipelineOid } filters when non-empty */
+const listAlertsBodySchema = Joi.object({
+  pipelineOid: Joi.string().trim().allow('', null).optional()
 })
+  .unknown(false)
 
-module.exports = { alertsSchema }
+module.exports = { listAlertsBodySchema }
