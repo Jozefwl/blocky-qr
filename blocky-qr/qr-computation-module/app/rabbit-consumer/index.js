@@ -4,7 +4,8 @@ const ComputationJob = require('./model')
 
 const MONGO_URL  = process.env.MONGODB_URL  || 'mongodb://127.0.0.1:27017/toughbook'
 const RABBIT_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672'
-const BACKEND    = `http://localhost:${process.env.BACKEND_PORT || 3001}`
+const BACKEND = (process.env.BACKEND_URL
+  || `http://localhost:${process.env.BACKEND_PORT ?? 3000}`).replace(/\/$/, '')
 
 const activeJobs = new Map()
 
@@ -71,11 +72,19 @@ async function calcStats(msg) {
 }
 
 async function patchRun(runId, body) {
-  await fetch(`${BACKEND}/runs/${runId}`, {
-    method:  'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(body)
-  }).catch((err) => console.warn(`[${runId}] PATCH run failed:`, err.message))
+  try {
+    const res = await fetch(`${BACKEND}/runs/${runId}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body)
+    })
+    if (!res.ok) {
+      const detail = await res.text()
+      console.warn(`[${runId}] PATCH run failed: HTTP ${res.status}`, detail || '')
+    }
+  } catch (err) {
+    console.warn(`[${runId}] PATCH run failed:`, err.message)
+  }
 }
 
 async function executeJob(msg) {
@@ -84,7 +93,7 @@ async function executeJob(msg) {
     const results = await calcStats(msg)
     await patchRun(runId, {
       status:           'successful',
-      processedRecords: results.reduce((acc, r) => acc + r.count, 0),
+      processedRecords: results.reduce((acc, r) => acc + r.totalCalls, 0),
       finishTime:       new Date().toISOString()
     })
     console.log(`[${runId}] Job completed successfully.`)
@@ -148,7 +157,7 @@ async function startConsumer() {
           $inc:       { receiveCount: 1 },
           $setOnInsert: { receivedAt: new Date().toISOString() }
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       )
 
       const isForceRun = existing.receiveCount > 1
