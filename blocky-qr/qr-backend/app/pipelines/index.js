@@ -5,6 +5,7 @@ const { pipelinesSchema } = require('./validation')
 const Pipeline  = require('./model.js')
 const Dataset   = require('../datasets/model')
 const JobRun    = require('../runs/model')
+const { createAlertsForMatchingRules } = require('../alerts/fromRun')
 
 // POST /pipelines
 router.post('/', async (req, res, next) => {
@@ -107,6 +108,12 @@ router.post('/:id/run', async (req, res, next) => {
       cmds: ['calcStats']
     }
     channel.sendToQueue('computations', Buffer.from(JSON.stringify(message)), { persistent: true })
+
+    try {
+      await createAlertsForMatchingRules(run.toObject?.() ?? run)
+    } catch (alertErr) {
+      console.error('Alert evaluation failed:', alertErr.message)
+    }
 
     res.status(202).json({ status: 'OK', message: 'Pipeline run triggered', data: run })
   } catch (err) {

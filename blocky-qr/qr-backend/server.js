@@ -10,7 +10,7 @@ app.use(express.json())
 
 app.use('/auth', require('./app/auth'))
 app.use('/qr-app', require('./app/qr-app'))
-app.use('/qr-aggregator', require('./app/qr-aggregator'))
+//app.use('/qr-aggregator', require('./app/qr-aggregator'))
 app.use('/alert-rules', require('./app/alert-rules'))
 app.use('/alerts', require('./app/alerts'))
 app.use('/datasets', require('./app/datasets'))

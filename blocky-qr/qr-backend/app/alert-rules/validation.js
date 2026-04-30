@@ -1,12 +1,22 @@
 const Joi = require('joi')
 
-const alertRulesSchema = Joi.object({
-//   frequency: Joi.string().valid('h', 'min', 'd').required(),
-//   timeInterval: Joi.object({
-//     start: Joi.string().isoDate().required(),
-//     end: Joi.string().isoDate().required()
-//   }).required(),
-//   cmds: Joi.array().items(Joi.string()).min(1).required()
+const reportWhenStates = ['successful', 'error', 'pending', 'running']
+
+const alertRuleCreateSchema = Joi.object({
+  name:            Joi.string().min(1).required(),
+  pipelineOid:     Joi.string().required(),
+  reportWhenState: Joi.string().valid(...reportWhenStates).required()
 })
 
-module.exports = { alertRulesSchema }
+const alertRulePatchSchema = Joi.object({
+  name:            Joi.string().min(1),
+  pipelineOid:     Joi.string(),
+  reportWhenState: Joi.string().valid(...reportWhenStates)
+})
+  .min(1)
+
+module.exports = {
+  alertRuleCreateSchema,
+  alertRulePatchSchema,
+  reportWhenStates
+}
