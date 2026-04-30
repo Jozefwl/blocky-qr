@@ -45,6 +45,306 @@ items:
       followRedirects: true
       maxRedirects: 5
   - info:
+      name: alert-rules
+      type: folder
+      seq: 6
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Delete rule by ID
+          type: http
+          seq: 5
+        http:
+          method: DELETE
+          url: http://{{server_uri}}/alert-rules/812928
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get all rules
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/alert-rules/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get rule by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/alert-rules/812928
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make Rule
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/alert-rules/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Patch rule by ID
+          type: http
+          seq: 4
+        http:
+          method: PATCH
+          url: http://{{server_uri}}/alert-rules/812928
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: alerts
+      type: folder
+      seq: 5
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Acknowledge alert
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/alerts/1337/acknowledge
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get alert by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts/1337
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get all alerts
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: datasets
+      type: folder
+      seq: 7
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Get all datasets
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/datasets/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get dataset by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/datasets/69f28f34c21253f1fbcbb3e5
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make dataset file
+          type: http
+          seq: 4
+        http:
+          method: POST
+          url: http://{{server_uri}}/datasets/
+          body:
+            type: json
+            data: |-
+              {
+                "name": "static_export",
+                "owner": "ops-team",
+                "type": "file",
+                "fileType": { "format": "json", "structure": "array-of-objects" },
+                "fileLink": "https://example.com/exports/static_export.json"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make dataset
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/datasets/
+          body:
+            type: json
+            data: |-
+              {
+                "name": "logs_feb_to_april",
+                "owner": "jozefwaldhauser",
+                "type": "aggregation",
+                "aggregation": {
+                  "timeFrom": "2026-02-01T00:00:00.000Z",
+                  "timeTo": "2026-04-29T23:59:59.999Z"
+                }
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: pipelines
+      type: folder
+      seq: 8
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Delete pipeline by ID
+          type: http
+          seq: 6
+        http:
+          method: DELETE
+          url: http://{{server_uri}}/pipelines/456
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get all pipelines
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/pipelines/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get pipeline by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/pipelines/69f2858a92c36b0860c65e2d
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Make pipeline
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/pipelines/
+          body:
+            type: json
+            data: |-
+              {
+                "name": "daily-aggregation",
+                "datasetOid": "69f28f34c21253f1fbcbb3e5",
+                "schedule": "0 2 * * *",
+                "active": true
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Manual trigger pipeline by ID
+          type: http
+          seq: 4
+        http:
+          method: POST
+          url: http://{{server_uri}}/pipelines/69f28f44c21253f1fbcbb3e9/run
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Update pipeline by ID
+          type: http
+          seq: 5
+        http:
+          method: PATCH
+          url: http://{{server_uri}}/pipelines/456
+          body:
+            type: json
+            data: |-
+              {
+                "name": "daily-aggregation-v2",
+                "active": false
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
       name: qr-aggregator
       type: folder
       seq: 3
@@ -95,229 +395,6 @@ items:
               {
                 "receiptId":"O-50DF7CADC7244B699F7CADC7241B69AD"
               }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
-      name: alert-rules
-      type: folder
-      seq: 6
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: Get all rules
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: http://{{server_uri}}/alert-rules/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Get rule by ID
-          type: http
-          seq: 2
-        http:
-          method: GET
-          url: http://{{server_uri}}/alert-rules/812928
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Make Rule
-          type: http
-          seq: 3
-        http:
-          method: POST
-          url: http://{{server_uri}}/alert-rules/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Delete rule by ID
-          type: http
-          seq: 5
-        http:
-          method: DELETE
-          url: http://{{server_uri}}/alert-rules/812928
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Patch rule by ID
-          type: http
-          seq: 4
-        http:
-          method: PATCH
-          url: http://{{server_uri}}/alert-rules/812928
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
-      name: datasets
-      type: folder
-      seq: 7
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: Get all datasets
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: http://{{server_uri}}/datasets/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Make dataset
-          type: http
-          seq: 3
-        http:
-          method: POST
-          url: http://{{server_uri}}/datasets/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Get dataset by ID
-          type: http
-          seq: 2
-        http:
-          method: GET
-          url: http://{{server_uri}}/datasets/6969
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
-      name: alerts
-      type: folder
-      seq: 5
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: Get all alerts
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: http://{{server_uri}}/alerts/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Get alert by ID
-          type: http
-          seq: 2
-        http:
-          method: GET
-          url: http://{{server_uri}}/alerts/1337
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Acknowledge alert
-          type: http
-          seq: 3
-        http:
-          method: POST
-          url: http://{{server_uri}}/alerts/1337/acknowledge
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
-      name: pipelines
-      type: folder
-      seq: 8
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: Get all pipelines
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: http://{{server_uri}}/pipelines/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Get pipeline by ID
-          type: http
-          seq: 2
-        http:
-          method: GET
-          url: http://{{server_uri}}/pipelines/456
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Make pipeline
-          type: http
-          seq: 3
-        http:
-          method: POST
-          url: http://{{server_uri}}/pipelines/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Manual trigger pipeline by ID
-          type: http
-          seq: 4
-        http:
-          method: POST
-          url: http://{{server_uri}}/pipelines/345/run
           auth: inherit
         settings:
           encodeUrl: true
@@ -376,5 +453,5 @@ extensions:
     ignore:
       - node_modules
       - .git
-    exportedAt: '2026-04-11T09:17:15.524Z'
+    exportedAt: '2026-04-30T16:30:11.734Z'
     exportedUsing: Bruno
