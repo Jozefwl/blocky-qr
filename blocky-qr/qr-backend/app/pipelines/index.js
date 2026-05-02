@@ -5,6 +5,7 @@ const { pipelinesSchema } = require('./validation')
 const Pipeline  = require('./model.js')
 const Dataset   = require('../datasets/model')
 const JobRun    = require('../runs/model')
+const { createAlertsForMatchingRules } = require('../alerts/fromRun')
 
 // POST /pipelines
 router.post('/', async (req, res, next) => {
@@ -95,8 +96,6 @@ router.post('/:id/run', async (req, res, next) => {
       lastStatus:  'running'
     })
 
-    // send to RabbitMQ → calcStatsAsync
-    const channel = await getChannel()
     const message = {
       runId:    run._id.toString(),
       frequency: 'd',
@@ -106,7 +105,54 @@ router.post('/:id/run', async (req, res, next) => {
       },
       cmds: ['calcStats']
     }
-    channel.sendToQueue('computations', Buffer.from(JSON.stringify(message)), { persistent: true })
+
+    try {
+      const channel = await getChannel()
+      const published = channel.sendToQueue(
+        'computations',
+        Buffer.from(JSON.stringify(message)),
+        { persistent: true }
+      )
+      if (!published) {
+        throw new Error('sendToQueue returned false (buffer full?)')
+      }
+    } catch (rabbitErr) {
+      const finishTime = new Date().toISOString()
+      const errorMessage = `RabbitMQ unreachable: ${rabbitErr.message}`
+      const updatedRun = await JobRun.findByIdAndUpdate(
+        run._id,
+        {
+          status: 'error',
+          errorMessage,
+          finishTime
+        },
+        { new: true }
+      ).lean()
+
+      await Pipeline.findByIdAndUpdate(id, {
+        lastStatus: 'error',
+        lastRunTime: finishTime
+      })
+
+      try {
+        await createAlertsForMatchingRules(updatedRun)
+      } catch (alertErr) {
+        console.error('Alert evaluation failed:', alertErr.message)
+      }
+
+      return res.status(503).json({
+        error: 'Pipeline run could not be queued — RabbitMQ unavailable',
+        status: 'ERROR',
+        message: 'Pipeline run could not be queued — RabbitMQ unavailable',
+        data: updatedRun
+      })
+    }
+
+    try {
+      await createAlertsForMatchingRules(run.toObject?.() ?? run)
+    } catch (alertErr) {
+      console.error('Alert evaluation failed:', alertErr.message)
+    }
 
     res.status(202).json({ status: 'OK', message: 'Pipeline run triggered', data: run })
   } catch (err) {
