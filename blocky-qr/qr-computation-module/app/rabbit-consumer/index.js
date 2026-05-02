@@ -133,55 +133,80 @@ function scheduleJob(msg, forceImmediate = false) {
   activeJobs.set(runId, intervalId)
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function startConsumer() {
   await connectDB()
 
-  const conn    = await amqp.connect(RABBIT_URL)
-  const channel = await conn.createChannel()
-  await channel.assertQueue('computations', { durable: true })
-  channel.prefetch(1)
+  let backoffMs = 2000
 
-  console.log('Rabbit consumer listening on queue: computations')
-
-  channel.consume('computations', async (raw) => {
-    if (!raw) return
+  while (true) {
     try {
-      const msg = JSON.parse(raw.content.toString())
-      console.log('Received message:', msg)
+      const conn = await amqp.connect(RABBIT_URL)
+      backoffMs = 2000
 
-      // upsert into computationmodule, track receiveCount
-      const existing = await ComputationJob.findOneAndUpdate(
-        { runId: msg.runId },
-        {
-          $set:       { frequency: msg.frequency, timeInterval: msg.timeInterval, cmds: msg.cmds },
-          $inc:       { receiveCount: 1 },
-          $setOnInsert: { receivedAt: new Date().toISOString() }
-        },
-        { upsert: true, returnDocument: 'after' }
-      )
+      conn.on('error', (err) => {
+        console.error('RabbitMQ connection error:', err.message)
+      })
 
-      const isForceRun = existing.receiveCount > 1
+      const channel = await conn.createChannel()
+      await channel.assertQueue('computations', { durable: true })
+      channel.prefetch(1)
 
-      if (msg.cmds?.includes('calcStats')) {
-        if (isForceRun && activeJobs.has(msg.runId)) {
-          console.log(`[${msg.runId}] Duplicate msg → cancelling cron, force running now`)
-          clearInterval(activeJobs.get(msg.runId))
-          activeJobs.delete(msg.runId)
-        }
-        scheduleJob(msg, isForceRun)
-      } else {
-        console.warn('Unknown cmd:', msg.cmds)
-      }
+      console.log('Rabbit consumer listening on queue: computations')
 
-      channel.ack(raw)
+      await new Promise((resolveClose) => {
+        conn.once('close', resolveClose)
+
+        channel.consume('computations', async (raw) => {
+          if (!raw) return
+          try {
+            const msg = JSON.parse(raw.content.toString())
+            console.log('Received message:', msg)
+
+            // upsert into computationmodule, track receiveCount
+            const existing = await ComputationJob.findOneAndUpdate(
+              { runId: msg.runId },
+              {
+                $set:       { frequency: msg.frequency, timeInterval: msg.timeInterval, cmds: msg.cmds },
+                $inc:       { receiveCount: 1 },
+                $setOnInsert: { receivedAt: new Date().toISOString() }
+              },
+              { upsert: true, returnDocument: 'after' }
+            )
+
+            const isForceRun = existing.receiveCount > 1
+
+            if (msg.cmds?.includes('calcStats')) {
+              if (isForceRun && activeJobs.has(msg.runId)) {
+                console.log(`[${msg.runId}] Duplicate msg → cancelling cron, force running now`)
+                clearInterval(activeJobs.get(msg.runId))
+                activeJobs.delete(msg.runId)
+              }
+              scheduleJob(msg, isForceRun)
+            } else {
+              console.warn('Unknown cmd:', msg.cmds)
+            }
+
+            channel.ack(raw)
+          } catch (err) {
+            console.error('Failed to process message:', err.message)
+            channel.nack(raw, false, false)
+          }
+        })
+      })
+
+      console.warn('RabbitMQ connection closed; reconnecting...')
     } catch (err) {
-      console.error('Failed to process message:', err.message)
-      channel.nack(raw, false, false)
+      console.error(
+        `RabbitMQ unreachable by computation module (${err.message}); retry in ${backoffMs}ms`
+      )
+      await sleep(backoffMs)
+      backoffMs = Math.min(30_000, backoffMs * 2)
     }
-  })
-
-  conn.on('error', (err) => console.error('Rabbit error:', err.message))
-  conn.on('close', () => console.warn('Rabbit connection closed'))
+  }
 }
 
 module.exports = { startConsumer }
