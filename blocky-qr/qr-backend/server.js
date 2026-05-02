@@ -10,7 +10,7 @@ app.use(express.json())
 
 app.use('/auth', require('./app/auth'))
 app.use('/qr-app', require('./app/qr-app'))
-app.use('/qr-aggregator', require('./app/qr-aggregator'))
+//app.use('/qr-aggregator', require('./app/qr-aggregator'))
 app.use('/alert-rules', require('./app/alert-rules'))
 app.use('/alerts', require('./app/alerts'))
 app.use('/datasets', require('./app/datasets'))
@@ -35,11 +35,7 @@ app.use((err, req, res, next) => {
 
 connectDB().then(() => {
   app.listen(process.env.PORT || 3000, () =>
-    console.log(`Running on http://localhost:${process.env.PORT || 3000}`)
+    console.log(`Server ready to accept connections on http://localhost:${process.env.PORT || 3000}`)
   )
 })
 
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
-})

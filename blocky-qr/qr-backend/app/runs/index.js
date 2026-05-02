@@ -3,6 +3,7 @@ const { ObjectId } = require('mongodb')
 const { patchRunSchema } = require('./validation')
 const JobRun   = require('./model')
 const Pipeline = require('../pipelines/model')
+const { createAlertsForMatchingRules } = require('../alerts/fromRun')
 
 // GET /runs
 router.get('/', async (req, res, next) => {
@@ -58,6 +59,8 @@ router.patch('/:id', async (req, res, next) => {
 
     const isFinal = value.status === 'successful' || value.status === 'error'
 
+    const prevStatus = run.status
+
     const updates = {
       status:           value.status,
       errorMessage:     value.errorMessage     ?? run.errorMessage,
@@ -74,6 +77,14 @@ router.patch('/:id', async (req, res, next) => {
       lastStatus:  value.status,
       lastRunTime: updates.finishTime ?? run.startTime
     })
+
+    if (value.status !== prevStatus) {
+      try {
+        await createAlertsForMatchingRules(updated.toObject?.() ?? updated)
+      } catch (alertErr) {
+        console.error('Alert evaluation failed:', alertErr.message)
+      }
+    }
 
     res.json({ status: 'OK', message: 'Run updated', data: updated })
   } catch (err) {
