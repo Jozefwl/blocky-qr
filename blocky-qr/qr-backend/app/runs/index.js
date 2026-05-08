@@ -60,9 +60,28 @@ router.patch('/:id', async (req, res, next) => {
     const isFinal = value.status === 'successful' || value.status === 'error'
 
     const prevStatus = run.status
+    const nextStatus = value.status
+
+    // Enforce allowed transitions:
+    // pending -> running
+    // running -> successful | error
+    // (same->same is treated as no-op)
+    const allowed =
+      prevStatus === nextStatus ||
+      (prevStatus === 'pending' && nextStatus === 'running') ||
+      (prevStatus === 'running' && (nextStatus === 'successful' || nextStatus === 'error'))
+    if (!allowed) {
+      return res.status(409).json({
+        error: `Invalid status transition: ${prevStatus} -> ${nextStatus}`,
+        allowedTransitions: {
+          pending: ['running'],
+          running: ['successful', 'error']
+        }
+      })
+    }
 
     const updates = {
-      status:           value.status,
+      status:           nextStatus,
       errorMessage:     value.errorMessage     ?? run.errorMessage,
       processedRecords: value.processedRecords ?? run.processedRecords,
       finishTime:       isFinal

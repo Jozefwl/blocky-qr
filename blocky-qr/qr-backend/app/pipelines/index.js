@@ -86,13 +86,21 @@ router.post('/:id/run', async (req, res, next) => {
     const run = await JobRun.create({
       pipelineOid:     pipeline._id.toString(),
       pipelineVersion: pipeline.pipelineVersion,
-      status:          'running',
-      startTime:       new Date().toISOString()
+      status:          'pending',
+      startTime:       null
     })
+
+    // transition pending -> running (enforced by project rules)
+    const startedAt = new Date().toISOString()
+    const runningRun = await JobRun.findByIdAndUpdate(
+      run._id,
+      { status: 'running', startTime: startedAt },
+      { new: true }
+    ).lean()
 
     // update pipeline lastRunTime + lastStatus
     await Pipeline.findByIdAndUpdate(id, {
-      lastRunTime: run.startTime,
+      lastRunTime: startedAt,
       lastStatus:  'running'
     })
 
@@ -149,12 +157,12 @@ router.post('/:id/run', async (req, res, next) => {
     }
 
     try {
-      await createAlertsForMatchingRules(run.toObject?.() ?? run)
+      await createAlertsForMatchingRules(runningRun ?? run)
     } catch (alertErr) {
       console.error('Alert evaluation failed:', alertErr.message)
     }
 
-    res.status(202).json({ status: 'OK', message: 'Pipeline run triggered', data: run })
+    res.status(202).json({ status: 'OK', message: 'Pipeline run triggered', data: runningRun ?? run })
   } catch (err) {
     next(err)
   }
