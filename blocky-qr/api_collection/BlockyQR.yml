@@ -45,6 +45,94 @@ items:
       followRedirects: true
       maxRedirects: 5
   - info:
+      name: alerts
+      type: folder
+      seq: 5
+    request:
+      auth: inherit
+    docs:
+      content: |
+        ## Alerts
+
+        Alerty vznikajú vyhodnotením `alert-rules` pre pipeline. V implementácii majú alerty:
+        - `message`, `pipelineOid`, `runId`, `status`, `createdAt`, `acknowledgedAt` (nullable), `alertRuleId` (nullable)
+
+        > Severity nie je explicitné pole v API — UI si ho odvodzuje.
+      type: text/markdown
+    items:
+      - info:
+          name: Acknowledge alert
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/alerts/69f388a05a3fef36cf481a3c/acknowledge
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+        docs: |-
+          ### `POST /alerts/:id/acknowledge`
+          - označí alert ako potvrdený (`acknowledgedAt=now`)
+      - info:
+          name: Get alert by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts/69f5a3674d4221585e3b8982
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+        docs: |-
+          ### `GET /alerts/:id`
+          - detail alertu (chyby **400/404**)
+      - info:
+          name: Get all alerts pipeline
+          type: http
+          seq: 4
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts?pipelineOid=69f5a5624d4221585e3b89d5
+          params:
+            - name: pipelineOid
+              value: 69f5a5624d4221585e3b89d5
+              type: query
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Get all alerts
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: http://{{server_uri}}/alerts/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+        docs: |-
+          ### `GET /alerts`
+          - **Účel**: list alertov (sort od najnovších).
+          - **Filter (pipeline)**:
+            - Tento backend číta filter z **JSON body** (nestandardné pre GET).
+            - Body:
+
+          ```json
+          { "pipelineOid": "69f28f44c21253f1fbcbb3e9" }
+          ```
+  - info:
       name: alert-rules
       type: folder
       seq: 6
@@ -170,7 +258,14 @@ items:
           seq: 5
         http:
           method: PATCH
-          url: http://{{server_uri}}/alert-rules/812928
+          url: http://{{server_uri}}/alert-rules/69ff995ecd7847b8d56d2e78
+          body:
+            type: json
+            data: |-
+              {
+                "name":"Notify on pipeline fail",
+                "reportWhenState":"error"
+              }
           auth: inherit
         settings:
           encodeUrl: true
@@ -180,242 +275,6 @@ items:
         docs: |-
           ### `PATCH /alert-rules/:id`
           - update: `name`, `pipelineOid`, `reportWhenState`
-  - info:
-      name: alerts
-      type: folder
-      seq: 5
-    request:
-      auth: inherit
-    docs:
-      content: |
-        ## Alerts
-
-        Alerty vznikajú vyhodnotením `alert-rules` pre pipeline. V implementácii majú alerty:
-        - `message`, `pipelineOid`, `runId`, `status`, `createdAt`, `acknowledgedAt` (nullable), `alertRuleId` (nullable)
-
-        > Severity nie je explicitné pole v API — UI si ho odvodzuje.
-      type: text/markdown
-    items:
-      - info:
-          name: Acknowledge alert
-          type: http
-          seq: 3
-        http:
-          method: POST
-          url: http://{{server_uri}}/alerts/69f388a05a3fef36cf481a3c/acknowledge
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |-
-          ### `POST /alerts/:id/acknowledge`
-          - označí alert ako potvrdený (`acknowledgedAt=now`)
-      - info:
-          name: Get alert by ID
-          type: http
-          seq: 2
-        http:
-          method: GET
-          url: http://{{server_uri}}/alerts/1337
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |-
-          ### `GET /alerts/:id`
-          - detail alertu (chyby **400/404**)
-      - info:
-          name: Get all alerts pipeline
-          type: http
-          seq: 4
-        http:
-          method: GET
-          url: http://{{server_uri}}/alerts/
-          body:
-            type: json
-            data: |-
-              {
-                "pipelineOid":"asdff"
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Get all alerts
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: http://{{server_uri}}/alerts/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |-
-          ### `GET /alerts`
-          - **Účel**: list alertov (sort od najnovších).
-          - **Filter (pipeline)**:
-            - Tento backend číta filter z **JSON body** (nestandardné pre GET).
-            - Body:
-
-          ```json
-          { "pipelineOid": "69f28f44c21253f1fbcbb3e9" }
-          ```
-  - info:
-      name: datasets
-      type: folder
-      seq: 7
-    request:
-      auth: inherit
-    docs:
-      content: |
-        ## Datasets
-
-        Evidence datasetov (metadata). Dataset je nezávislá entita, pipeline nad ním iba beží.
-
-        ### Model (stručne)
-        - `name` (string, required)
-        - `owner` (string, required)
-        - `type` (enum: `aggregation` | `file`, required)
-        - `schemaVersion` (number, default 1)
-        - `createdAt` (ISO string)
-        - `fileType` (object, required ak `type=file`)  
-          - `format`: `json` (required)
-          - `structure`: string (optional)
-        - `fileLink` (string URL, optional ak `type=file`)
-        - `aggregation` (object, required ak `type=aggregation`)  
-          - `timeFrom` (ISO date, required)
-          - `timeTo` (ISO date, required)
-      type: text/markdown
-    items:
-      - info:
-          name: Get all datasets
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: http://{{server_uri}}/datasets/
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |-
-          ### `GET /datasets`
-          - **Účel**: list datasetov.
-          - **Pozn.**: nezobrazuje/nevypisuje celý obsah `aggregation`.
-      - info:
-          name: Get dataset by ID
-          type: http
-          seq: 2
-        http:
-          method: GET
-          url: http://{{server_uri}}/datasets/69f28f34c21253f1fbcbb3e5
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |
-          ### `GET /datasets/:id`
-          - **Účel**: detail datasetu.
-          - **Chyby**:
-            - **400** invalid ObjectId
-            - **404** dataset not found
-      - info:
-          name: Make dataset file
-          type: http
-          seq: 4
-        http:
-          method: POST
-          url: http://{{server_uri}}/datasets/
-          body:
-            type: json
-            data: |-
-              {
-                "name": "static_export",
-                "owner": "ops-team",
-                "type": "file",
-                "fileType": { "format": "json", "structure": "array-of-objects" },
-                "fileLink": "https://example.com/exports/static_export.json"
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |-
-          ### `POST /datasets`
-          - **Účel**: vytvorí dataset.
-          **Body (file príklad)** :
-
-          ```json
-          {
-            "name": "static_export",
-            "owner": "ops-team",
-            "type": "file",
-            "fileType": { "format": "json", "structure": "array-of-objects" },
-            "fileLink": "https://example.com/exports/static_export.json"
-          }
-          ```
-          - **201**: `{ status, message, data }`
-          - **400**: validačné chyby
-      - info:
-          name: Make dataset
-          type: http
-          seq: 3
-        http:
-          method: POST
-          url: http://{{server_uri}}/datasets/
-          body:
-            type: json
-            data: |-
-              {
-                "name": "logs_feb_to_april",
-                "owner": "jozefwaldhauser",
-                "type": "aggregation",
-                "aggregation": {
-                  "timeFrom": "2026-02-01T00:00:00.000Z",
-                  "timeTo": "2026-04-29T23:59:59.999Z"
-                }
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-        docs: |-
-          ### `POST /datasets`
-          - **Účel**: vytvorí dataset.
-          - **Body (aggregation príklad)**:
-
-          ```json
-          {
-            "name": "logs_feb_to_april",
-            "owner": "jozefwaldhauser",
-            "type": "aggregation",
-            "aggregation": {
-              "timeFrom": "2026-02-01T00:00:00.000Z",
-              "timeTo": "2026-04-29T23:59:59.999Z"
-            }
-          }
-          ```
-
-          - **201**: `{ status, message, data }`
-          - **400**: validačné chyby
   - info:
       name: pipelines
       type: folder
@@ -575,61 +434,84 @@ items:
           { "active": true }
           ```
   - info:
-      name: qr-aggregator
+      name: datasets
       type: folder
-      seq: 3
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: calcStatsAsync
-          type: http
-          seq: 2
-        http:
-          method: POST
-          url: http://{{server_uri}}/qr-aggregator/calcStatsAsync
-          body:
-            type: json
-            data: |-
-              {
-                "frequency": "h",
-                "timeInterval":{
-                  "start":"2026-03-14T07:39:06Z",
-                  "end":"2026-03-14T09:39:06Z"
-                },
-                "cmds":["cmd1"]
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
-      name: qr-app
-      type: folder
-      seq: 4
+      seq: 7
     request:
       auth: inherit
     docs:
-      content: |-
-        ### `/qr-app/*`, `/auth/*`
-        - Súčasť “QR” časti projektu / experimenty.
-        - Nemajú vplyv na minimálne požiadavky Pipeline Monitoru.
+      content: |
+        ## Datasets
+
+        Evidence datasetov (metadata). Dataset je nezávislá entita, pipeline nad ním iba beží.
+
+        ### Model (stručne)
+        - `name` (string, required)
+        - `owner` (string, required)
+        - `type` (enum: `aggregation` | `file`, required)
+        - `schemaVersion` (number, default 1)
+        - `createdAt` (ISO string)
+        - `fileType` (object, required ak `type=file`)  
+          - `format`: `json` (required)
+          - `structure`: string (optional)
+        - `fileLink` (string URL, optional ak `type=file`)
+        - `aggregation` (object, required ak `type=aggregation`)  
+          - `timeFrom` (ISO date, required)
+          - `timeTo` (ISO date, required)
       type: text/markdown
     items:
       - info:
-          name: getReceipt
+          name: Get all datasets
           type: http
           seq: 1
         http:
+          method: GET
+          url: http://{{server_uri}}/datasets/
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+        docs: |-
+          ### `GET /datasets`
+          - **Účel**: list datasetov.
+          - **Pozn.**: nezobrazuje/nevypisuje celý obsah `aggregation`.
+      - info:
+          name: Get dataset by ID
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: http://{{server_uri}}/datasets/69f28f34c21253f1fbcbb3e5
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+        docs: |
+          ### `GET /datasets/:id`
+          - **Účel**: detail datasetu.
+          - **Chyby**:
+            - **400** invalid ObjectId
+            - **404** dataset not found
+      - info:
+          name: Make dataset file
+          type: http
+          seq: 4
+        http:
           method: POST
-          url: http://{{server_uri}}/qr-app/getReceipt
+          url: http://{{server_uri}}/datasets/
           body:
             type: json
             data: |-
               {
-                "receiptId":"O-50DF7CADC7244B699F7CADC7241B69AD"
+                "name": "static_export",
+                "owner": "ops-team",
+                "type": "file",
+                "fileType": { "format": "json", "structure": "array-of-objects" },
+                "fileLink": "https://example.com/exports/static_export.json"
               }
           auth: inherit
         settings:
@@ -637,6 +519,66 @@ items:
           timeout: 0
           followRedirects: true
           maxRedirects: 5
+        docs: |-
+          ### `POST /datasets`
+          - **Účel**: vytvorí dataset.
+          **Body (file príklad)** :
+
+          ```json
+          {
+            "name": "static_export",
+            "owner": "ops-team",
+            "type": "file",
+            "fileType": { "format": "json", "structure": "array-of-objects" },
+            "fileLink": "https://example.com/exports/static_export.json"
+          }
+          ```
+          - **201**: `{ status, message, data }`
+          - **400**: validačné chyby
+      - info:
+          name: Make dataset
+          type: http
+          seq: 3
+        http:
+          method: POST
+          url: http://{{server_uri}}/datasets/
+          body:
+            type: json
+            data: |-
+              {
+                "name": "logs_feb_to_april",
+                "owner": "jozefwaldhauser",
+                "type": "aggregation",
+                "aggregation": {
+                  "timeFrom": "2026-02-01T00:00:00.000Z",
+                  "timeTo": "2026-04-29T23:59:59.999Z"
+                }
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+        docs: |-
+          ### `POST /datasets`
+          - **Účel**: vytvorí dataset.
+          - **Body (aggregation príklad)**:
+
+          ```json
+          {
+            "name": "logs_feb_to_april",
+            "owner": "jozefwaldhauser",
+            "type": "aggregation",
+            "aggregation": {
+              "timeFrom": "2026-02-01T00:00:00.000Z",
+              "timeTo": "2026-04-29T23:59:59.999Z"
+            }
+          }
+          ```
+
+          - **201**: `{ status, message, data }`
+          - **400**: validačné chyby
   - info:
       name: runs
       type: folder
@@ -726,6 +668,69 @@ items:
             - **409** ak je run už vo finálnom stave (`successful` alebo `error`)
 
           ---
+  - info:
+      name: qr-aggregator
+      type: folder
+      seq: 3
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: calcStatsAsync
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: http://{{server_uri}}/qr-aggregator/calcStatsAsync
+          body:
+            type: json
+            data: |-
+              {
+                "frequency": "h",
+                "timeInterval":{
+                  "start":"2026-03-14T07:39:06Z",
+                  "end":"2026-03-14T09:39:06Z"
+                },
+                "cmds":["cmd1"]
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: qr-app
+      type: folder
+      seq: 4
+    request:
+      auth: inherit
+    docs:
+      content: |-
+        ### `/qr-app/*`, `/auth/*`
+        - Súčasť “QR” časti projektu / experimenty.
+        - Nemajú vplyv na minimálne požiadavky Pipeline Monitoru.
+      type: text/markdown
+    items:
+      - info:
+          name: getReceipt
+          type: http
+          seq: 1
+        http:
+          method: POST
+          url: http://{{server_uri}}/qr-app/getReceipt
+          body:
+            type: json
+            data: |-
+              {
+                "receiptId":"O-50DF7CADC7244B699F7CADC7241B69AD"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
 docs:
   content: |-
     # BlockyQR - scanovanie blockov
@@ -756,5 +761,5 @@ extensions:
     ignore:
       - node_modules
       - .git
-    exportedAt: '2026-05-07T19:05:19.802Z'
+    exportedAt: '2026-05-09T20:33:08.026Z'
     exportedUsing: Bruno

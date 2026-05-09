@@ -1,6 +1,6 @@
 const Joi = require('joi')
 
-/** Body for GET /alerts — {} = all; { pipelineOid } filters when non-empty */
+/** GET /alerts: optional filter — ?pipelineOid= or JSON body { pipelineOid } when non-empty */
 const listAlertsBodySchema = Joi.object({
   pipelineOid: Joi.string().trim().allow('', null).optional()
 })

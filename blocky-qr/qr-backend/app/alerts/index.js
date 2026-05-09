@@ -3,12 +3,17 @@ const { ObjectId } = require('mongodb')
 const { listAlertsBodySchema } = require('./validation')
 const Alert = require('./model')
 
-// GET /alerts — body: {} = all alerts; { "pipelineOid": "<id>" } = filter by pipeline (JSON body)
+// GET /alerts — optional filter by pipelineOid via ?pipelineOid=... or JSON body { "pipelineOid": "..." }
 router.get('/', async (req, res, next) => {
   try {
     const rawBody =
       req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {}
-    const { error, value } = listAlertsBodySchema.validate(rawBody, { abortEarly: false })
+    const qOid = req.query?.pipelineOid
+    const merged = {
+      ...rawBody,
+      ...(qOid != null && qOid !== '' ? { pipelineOid: qOid } : {})
+    }
+    const { error, value } = listAlertsBodySchema.validate(merged, { abortEarly: false })
     if (error) {
       return res.status(400).json({ errors: error.details.map(d => d.message) })
     }
