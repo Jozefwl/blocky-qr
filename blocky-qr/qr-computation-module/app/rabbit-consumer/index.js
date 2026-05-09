@@ -8,6 +8,8 @@ const BACKEND = (process.env.BACKEND_URL
   || `http://localhost:${process.env.BACKEND_PORT ?? 3000}`).replace(/\/$/, '')
 
 const activeJobs = new Map()
+/** Keep run status `running` visible for at least this long (ms) after PATCH running. */
+const MIN_RUNNING_MS = 1000
 
 async function connectDB() {
   if (mongoose.connection.readyState === 0) {
@@ -71,6 +73,15 @@ async function calcStats(msg) {
   return results
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function sleepUntilMinRunning(runningSinceMs) {
+  const elapsed = Date.now() - runningSinceMs
+  if (elapsed < MIN_RUNNING_MS) await sleep(MIN_RUNNING_MS - elapsed)
+}
+
 async function patchRun(runId, body) {
   try {
     const res = await fetch(`${BACKEND}/runs/${runId}`, {
@@ -89,8 +100,15 @@ async function patchRun(runId, body) {
 
 async function executeJob(msg) {
   const { runId } = msg
+  const startedAt = new Date().toISOString()
+  await patchRun(runId, {
+    status:    'running',
+    startTime: startedAt
+  })
+  const runningSinceMs = Date.now()
   try {
     const results = await calcStats(msg)
+    await sleepUntilMinRunning(runningSinceMs)
     await patchRun(runId, {
       status:           'successful',
       processedRecords: results.reduce((acc, r) => acc + r.totalCalls, 0),
@@ -99,6 +117,7 @@ async function executeJob(msg) {
     console.log(`[${runId}] Job completed successfully.`)
   } catch (err) {
     console.error(`[${runId}] Job failed:`, err.message)
+    await sleepUntilMinRunning(runningSinceMs)
     await patchRun(runId, {
       status:       'error',
       errorMessage: err.message,
@@ -106,7 +125,9 @@ async function executeJob(msg) {
     })
   } finally {
     if (activeJobs.has(runId)) {
-      clearInterval(activeJobs.get(runId))
+      const { intervalId, startTimeoutId } = activeJobs.get(runId)
+      clearInterval(intervalId)
+      if (startTimeoutId) clearTimeout(startTimeoutId)
       activeJobs.delete(runId)
       console.log(`[${runId}] Job removed from registry.`)
     }
@@ -121,20 +142,20 @@ function scheduleJob(msg, forceImmediate = false) {
     return
   }
 
-  console.log(`[${runId}] Scheduling job${forceImmediate ? ' (FORCE)' : ''}, checks every 60s...`)
+  console.log(
+    `[${runId}] Scheduling job${forceImmediate ? ' (FORCE)' : ''}, first run after 1s, then every 60s...`
+  )
 
-  executeJob(msg)
+  const startTimeoutId = setTimeout(() => {
+    void executeJob(msg)
+  }, 1000)
 
   const intervalId = setInterval(() => {
     if (!activeJobs.has(runId)) return
     executeJob(msg)
   }, 60_000)
 
-  activeJobs.set(runId, intervalId)
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  activeJobs.set(runId, { intervalId, startTimeoutId })
 }
 
 async function startConsumer() {
@@ -182,7 +203,9 @@ async function startConsumer() {
             if (msg.cmds?.includes('calcStats')) {
               if (isForceRun && activeJobs.has(msg.runId)) {
                 console.log(`[${msg.runId}] Duplicate msg → cancelling cron, force running now`)
-                clearInterval(activeJobs.get(msg.runId))
+                const h = activeJobs.get(msg.runId)
+                clearInterval(h.intervalId)
+                if (h.startTimeoutId) clearTimeout(h.startTimeoutId)
                 activeJobs.delete(msg.runId)
               }
               scheduleJob(msg, isForceRun)

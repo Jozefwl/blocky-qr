@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApiRequestError, fetchPipelines, fetchRun } from "@/lib/api";
 import { formatDuration, runRuntimeMs } from "@/lib/run-utils";
+import { RunStatusLive } from "@/components/RunStatusLive";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type Props = { params: Promise<{ id: string }> };
@@ -70,7 +71,11 @@ export default async function RunDetailPage({ params }: Props) {
           <dd>{run.pipelineVersion}</dd>
           <dt>Stav</dt>
           <dd>
-            <StatusBadge status={run.status} />
+            <RunStatusLive
+              key={run._id}
+              runId={run._id}
+              initialFromServer={run.status}
+            />
           </dd>
           <dt>Začátek</dt>
           <dd>{run.startTime ?? run.createdAt ?? "—"}</dd>

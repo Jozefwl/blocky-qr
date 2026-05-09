@@ -82,7 +82,7 @@ router.post('/:id/run', async (req, res, next) => {
       return res.status(404).json({ error: 'Dataset not found' })
     }
 
-    // create JobRun
+    // create JobRun — stays pending until computation module PATCHes running
     const run = await JobRun.create({
       pipelineOid:     pipeline._id.toString(),
       pipelineVersion: pipeline.pipelineVersion,
@@ -90,18 +90,11 @@ router.post('/:id/run', async (req, res, next) => {
       startTime:       null
     })
 
-    // transition pending -> running (enforced by project rules)
-    const startedAt = new Date().toISOString()
-    const runningRun = await JobRun.findByIdAndUpdate(
-      run._id,
-      { status: 'running', startTime: startedAt },
-      { new: true }
-    ).lean()
+    const runLean = run.toObject?.() ?? run
 
-    // update pipeline lastRunTime + lastStatus
     await Pipeline.findByIdAndUpdate(id, {
-      lastRunTime: startedAt,
-      lastStatus:  'running'
+      lastRunTime: runLean.createdAt ?? new Date().toISOString(),
+      lastStatus:  'pending'
     })
 
     const message = {
@@ -157,12 +150,12 @@ router.post('/:id/run', async (req, res, next) => {
     }
 
     try {
-      await createAlertsForMatchingRules(runningRun ?? run)
+      await createAlertsForMatchingRules(runLean)
     } catch (alertErr) {
       console.error('Alert evaluation failed:', alertErr.message)
     }
 
-    res.status(202).json({ status: 'OK', message: 'Pipeline run triggered', data: runningRun ?? run })
+    res.status(202).json({ status: 'OK', message: 'Pipeline run triggered', data: runLean })
   } catch (err) {
     next(err)
   }

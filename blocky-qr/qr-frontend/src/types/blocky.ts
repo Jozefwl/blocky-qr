@@ -23,7 +23,7 @@ export type Pipeline = {
   createdAt?: string;
   pipelineVersion: number;
   lastRunTime?: string | null;
-  lastStatus?: "successful" | "error" | "running" | null;
+  lastStatus?: "successful" | "error" | "running" | "pending" | null;
 };
 
 /** Pokud backend doplní JobRunStep — volitelné pole kroků */
