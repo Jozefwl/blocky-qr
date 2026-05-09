@@ -1,7 +1,7 @@
 import { ApiRequestError, fetchDatasets, fetchPipelines } from "@/lib/api";
 import { PipelineCreateForm } from "@/components/PipelineCreateForm";
 import { PipelineRowActions } from "@/components/PipelineRowActions";
-import { StatusBadge } from "@/components/StatusBadge";
+import { PipelineLastStatusLive } from "@/components/PipelineLastStatusLive";
 import Link from "next/link";
 
 export default async function PipelinesPage() {
@@ -60,7 +60,11 @@ export default async function PipelinesPage() {
                   <td>{p.active ? "ano" : "ne"}</td>
                   <td className="muted small">{p.lastRunTime ?? "—"}</td>
                   <td>
-                    <StatusBadge status={p.lastStatus ?? undefined} />
+                    <PipelineLastStatusLive
+                      key={`${p._id}-${p.lastRunTime ?? ""}`}
+                      pipelineId={p._id}
+                      initialLastStatus={p.lastStatus ?? null}
+                    />
                   </td>
                   <td>
                     <PipelineRowActions pipeline={p} />
