@@ -8,7 +8,8 @@ const patchRunSchema = Joi.object({
         otherwise: Joi.string().optional().allow(null, '')
     }),
     processedRecords: Joi.number().integer().min(0).optional(),
-    finishTime: Joi.string().isoDate().optional()
+    finishTime: Joi.string().isoDate().optional(),
+    startTime: Joi.string().isoDate().optional()
 })
 
 module.exports = { patchRunSchema }

@@ -89,12 +89,22 @@ router.patch('/:id', async (req, res, next) => {
                           : run.finishTime
     }
 
+    if (nextStatus === 'running' && prevStatus === 'pending') {
+      updates.startTime = value.startTime ?? new Date().toISOString()
+    }
+
     const updated = await JobRun.findByIdAndUpdate(id, updates, { new: true })
 
-    // sync lastStatus on pipeline
+    const pipelineLastRunTime =
+      value.status === 'successful' || value.status === 'error'
+        ? (updates.finishTime ?? new Date().toISOString())
+        : value.status === 'running'
+          ? (updates.startTime ?? run.startTime)
+          : (run.startTime ?? run.createdAt)
+
     await Pipeline.findByIdAndUpdate(run.pipelineOid, {
       lastStatus:  value.status,
-      lastRunTime: updates.finishTime ?? run.startTime
+      lastRunTime: pipelineLastRunTime
     })
 
     if (value.status !== prevStatus) {

@@ -12,8 +12,10 @@ import {
   formatDuration,
   runRuntimeMs,
 } from "@/lib/run-utils";
-import { StatusBadge } from "@/components/StatusBadge";
+import { PipelineLastStatusLive } from "@/components/PipelineLastStatusLive";
 import { RunPipelineButton } from "@/components/RunPipelineButton";
+import { RunStatusLive } from "@/components/RunStatusLive";
+import { StatusBadge } from "@/components/StatusBadge";
 import { PipelineQuickEdit } from "@/components/PipelineQuickEdit";
 import { AlertSeverityBadge } from "@/components/AlertSeverityBadge";
 import { alertStateCz } from "@/lib/alert-utils";
@@ -102,7 +104,11 @@ export default async function PipelineDetailPage({ params }: Props) {
             <dd className="mono">{pipeline.schedule ?? "—"}</dd>
             <dt>Poslední stav</dt>
             <dd>
-              <StatusBadge status={pipeline.lastStatus ?? undefined} />
+              <PipelineLastStatusLive
+                key={`${pipeline._id}-${pipeline.lastRunTime ?? ""}`}
+                pipelineId={pipeline._id}
+                initialLastStatus={pipeline.lastStatus ?? null}
+              />
             </dd>
             <dt>Poslední běh</dt>
             <dd>{pipeline.lastRunTime ?? "—"}</dd>
@@ -162,7 +168,10 @@ export default async function PipelineDetailPage({ params }: Props) {
                 {pipelineRuns.slice(0, 25).map((r) => (
                   <tr key={r._id}>
                     <td>
-                      <StatusBadge status={r.status} />
+                      <RunStatusLive
+                        runId={r._id}
+                        initialFromServer={r.status}
+                      />
                     </td>
                     <td className="muted small">{r.startTime ?? r.createdAt ?? "—"}</td>
                     <td className="muted small">{r.finishTime ?? "—"}</td>

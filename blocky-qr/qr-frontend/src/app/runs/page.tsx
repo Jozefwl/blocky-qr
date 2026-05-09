@@ -5,7 +5,7 @@ import {
   formatDuration,
   runRuntimeMs,
 } from "@/lib/run-utils";
-import { StatusBadge } from "@/components/StatusBadge";
+import { RunStatusLive } from "@/components/RunStatusLive";
 import { RunsFilterForm } from "@/components/RunsFilterForm";
 
 type Props = {
@@ -100,7 +100,10 @@ export default async function RunsPage({ searchParams }: Props) {
                     </Link>
                   </td>
                   <td>
-                    <StatusBadge status={r.status} />
+                    <RunStatusLive
+                      runId={r._id}
+                      initialFromServer={r.status}
+                    />
                   </td>
                   <td className="muted small">{r.startTime ?? r.createdAt ?? "—"}</td>
                   <td className="muted small">{r.finishTime ?? "—"}</td>
