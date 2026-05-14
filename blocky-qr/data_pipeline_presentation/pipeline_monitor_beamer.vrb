@@ -1,0 +1,17 @@
+\frametitle{Stavový stroj behu a biznis pravidlá}
+\centering
+  \begin{tikzpicture}[node distance=1.3cm,every node/.style={font=\small}]
+    \node[component,fill=red!5] (p) {pending};
+    \node[component,right=of p,fill=red!15] (r) {running};
+    \node[component,above right=0.3cm and 1.3cm of r,fill=green!15,draw=green!50!black] (s) {successful};
+    \node[component,below right=0.3cm and 1.3cm of r,fill=red!25,draw=red!70!black] (e) {error};
+    \draw[arr] (p) -- (r);
+    \draw[arr] (r) -- (s);
+    \draw[arr] (r) -- (e);
+  \end{tikzpicture}
+  \vfill
+  \begin{itemize}
+    \item Povolené prechody sú validované v \texttt{PATCH /runs/:id}\,-\,iné kombinácie vrátia \texttt{409}.
+    \item \textbf{Pipeline} sa dá spustiť len ak \texttt{active = true} (inak \texttt{409}).
+    \item \textbf{Alert} vznikne podľa \texttt{AlertRule.reportWhenState} pri prechode behu do daného stavu.
+  \end{itemize}
