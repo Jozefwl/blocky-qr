@@ -4,6 +4,7 @@
 \beamer@sectionintoc {3}{Thought process}{5}{0}{3}
 \beamer@sectionintoc {4}{Backend}{6}{0}{4}
 \beamer@sectionintoc {5}{Doménový model}{7}{0}{5}
-\beamer@sectionintoc {6}{Computation module}{8}{0}{6}
-\beamer@sectionintoc {7}{Frontend}{9}{0}{7}
-\beamer@sectionintoc {8}{Zhrnutie}{10}{0}{8}
+\beamer@sectionintoc {6}{Vstupné a runtime modely}{8}{0}{6}
+\beamer@sectionintoc {7}{Computation module}{9}{0}{7}
+\beamer@sectionintoc {8}{Frontend}{10}{0}{8}
+\beamer@sectionintoc {9}{Zhrnutie}{11}{0}{9}

@@ -57,7 +57,7 @@
   \begin{itemize}
     \item Názov vznikol z QR kódu a pokladničného bloku.
     \item Frontend, \textbf{ktorý skenuje QR z bločku}.
-    \item Backend má qr-app endpoint, každé volanie sa zaznamenáva do \textbf{auditloguje} (request log).
+    \item Backend má qr-app endpoint, každé volanie sa zaznamenáva do \textbf{auditlogov} (request log).
     \item Cieľ monitoringu: \textbf{agregovať počet volaní} na endpoint skenovania bločku aj na všetky ostatné qr-app endpointy.
     \item Nad auditlogmi beží \textbf{pipeline}, ktorá v zadanom časovom okne zagreguje počet volaní a \textbf{zapíše štatistiky späť do DB}.
   \end{itemize}
@@ -112,8 +112,8 @@
     \item Pri raste objemu volaní synchrónne spracovanie nestačí $\Rightarrow$ posun k \textbf{Big Data architektúre}: oddelenie zápisu, fronty a výpočtu.
     \item \textbf{RabbitMQ ako buffer}\,-\,horizontálne škálovateľný, drží \textbf{veľký počet správ}.
     \item \textbf{Computation module subscribuje} správy a spracúva ich \textbf{podľa konfigurácie}.
-    \item Pri extrémnych objemoch: \textbf{computation module per channel}\,-\,vlastná queue a vlastná skupina workerov pre každý RabbitMQ channel.
-    \item Deployment ako \textbf{KEDA job}\,-\,dynamické škálovanie podľa dĺžky fronty, napr. v \textbf{Azure} (AKS + KEDA).
+    \item Pri extrémnych objemoch: \textbf{instance per queue}\,-\,vlastná queue a vlastná skupina workerov pre každý RabbitMQ channel.
+    \item Design architektúry pre \textbf{KEDA job}\,-\,dynamické škálovanie podľa dĺžky fronty, napr. v \textbf{Azure} (AKS + KEDA).
   \end{enumerate}
 \end{frame}
 
@@ -145,6 +145,27 @@
   \end{itemize}
   \begin{block}{Pravidlo integrity}
     Pipeline nemôže vzniknúť nad neexistujúcim datasetom\,-\,kontroluje sa pred uložením v handleri.
+  \end{block}
+\end{frame}
+
+% ---------------------------------------------------------------
+\section{Vstupné a runtime modely}
+\begin{frame}{Vstup pipeline a runtime stav workera}
+  \small
+  \begin{block}{\texttt{AuditLog} \,-\, kolekcia \texttt{auditlogs} (qr-backend)}
+    \begin{itemize}\small
+      \item Polia: \texttt{action}, \texttt{endpoint}, \texttt{requestBody}, \texttt{requestQuery}, \texttt{ip}, \texttt{status}, \texttt{timestamp}.
+      \item Zapisuje sa \textbf{middlewarom} v \texttt{app/qr-app} pri každom volaní na \texttt{/qr-app/*} (\texttt{getReceipt}, \texttt{saveReceipt}, \texttt{shareReceipt}).
+      \item \textbf{Vstup pipeline}\,-\,nad touto kolekciou beží agregácia v computation module (\texttt{\$match} podľa \texttt{timestamp}, \texttt{\$group} podľa \texttt{action}).
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{\texttt{ComputationJob} \,-\, kolekcia \texttt{computationmodule} (qr-computation-module)}
+    \begin{itemize}\small
+      \item Polia: \texttt{runId}, \texttt{frequency}, \texttt{timeInterval}, \texttt{cmds}, \texttt{receivedAt}, \texttt{receiveCount}.
+      \item Pri každej správe \textbf{upsert podľa \texttt{runId}} a \texttt{\$inc receiveCount}\,-\,worker vie rozlíšiť prvý príchod od duplicity.
+      \item \texttt{receiveCount > 1} $\Rightarrow$ \textbf{force re-run} (zruší naplánovaný cron a spustí \texttt{calcStats} okamžite).
+    \end{itemize}
   \end{block}
 \end{frame}
 

@@ -29,23 +29,28 @@
 \headcommand {\beamer@framepages {7}{7}}
 \headcommand {\beamer@sectionpages {7}{7}}
 \headcommand {\beamer@subsectionpages {7}{7}}
-\headcommand {\sectionentry {6}{Computation module}{8}{Computation module}{0}}
+\headcommand {\sectionentry {6}{Vstupné a runtime modely}{8}{Vstupné a runtime modely}{0}}
 \headcommand {\slideentry {6}{0}{1}{8/8}{}{0}}
 \headcommand {\beamer@framepages {8}{8}}
 \headcommand {\beamer@sectionpages {8}{8}}
 \headcommand {\beamer@subsectionpages {8}{8}}
-\headcommand {\sectionentry {7}{Frontend}{9}{Frontend}{0}}
+\headcommand {\sectionentry {7}{Computation module}{9}{Computation module}{0}}
 \headcommand {\slideentry {7}{0}{1}{9/9}{}{0}}
 \headcommand {\beamer@framepages {9}{9}}
 \headcommand {\beamer@sectionpages {9}{9}}
 \headcommand {\beamer@subsectionpages {9}{9}}
-\headcommand {\sectionentry {8}{Zhrnutie}{10}{Zhrnutie}{0}}
+\headcommand {\sectionentry {8}{Frontend}{10}{Frontend}{0}}
 \headcommand {\slideentry {8}{0}{1}{10/10}{}{0}}
 \headcommand {\beamer@framepages {10}{10}}
-\headcommand {\slideentry {8}{0}{2}{11/11}{}{0}}
+\headcommand {\beamer@sectionpages {10}{10}}
+\headcommand {\beamer@subsectionpages {10}{10}}
+\headcommand {\sectionentry {9}{Zhrnutie}{11}{Zhrnutie}{0}}
+\headcommand {\slideentry {9}{0}{1}{11/11}{}{0}}
 \headcommand {\beamer@framepages {11}{11}}
-\headcommand {\beamer@partpages {1}{11}}
-\headcommand {\beamer@subsectionpages {10}{11}}
-\headcommand {\beamer@sectionpages {10}{11}}
-\headcommand {\beamer@documentpages {11}}
-\headcommand {\gdef \inserttotalframenumber {11}}
+\headcommand {\slideentry {9}{0}{2}{12/12}{}{0}}
+\headcommand {\beamer@framepages {12}{12}}
+\headcommand {\beamer@partpages {1}{12}}
+\headcommand {\beamer@subsectionpages {11}{12}}
+\headcommand {\beamer@sectionpages {11}{12}}
+\headcommand {\beamer@documentpages {12}}
+\headcommand {\gdef \inserttotalframenumber {12}}
