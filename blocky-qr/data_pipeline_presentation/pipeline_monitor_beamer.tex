@@ -36,7 +36,7 @@
 }
 
 \title[Big Data Pipeline Monitor]{Big Data Pipeline Monitor}
-\subtitle{Architektúra distribuovanej aplikácie}
+\subtitle{Architektúra distribuovanej aplikácie \emph{qr-blocky}}
 \author{Jozef Waldhauser}
 \institute{MSWA}
 \date{2026 léto}
@@ -52,16 +52,18 @@
 \end{frame}
 
 % ---------------------------------------------------------------
-\section{Prehľad}
-\begin{frame}{3 komponenty}
+\section{Pôvodná idea}
+\begin{frame}{Prečo práve \texttt{qr-blocky}?}
   \begin{itemize}
-    \item Aplikácia eviduje \textbf{datasety}, \textbf{pipeline}, ich \textbf{behy} a \textbf{alerty}.
-    \item Spustenie pipeline je \textbf{simulovaný výpočet}\,-\,reálne sa robí agregácia nad MongoDB.
-    \item Architektonicky som riešenie rozdelil na \textbf{tri samostatné služby}, ktoré komunikujú cez REST a frontu správ.
+    \item Názov vznikol z QR kódu a pokladničného bloku.
+    \item Frontend, \textbf{ktorý skenuje QR z bločku}.
+    \item Backend má qr-app endpoint, každé volanie sa zaznamenáva do \textbf{auditloguje} (request log).
+    \item Cieľ monitoringu: \textbf{agregovať počet volaní} na endpoint skenovania bločku aj na všetky ostatné qr-app endpointy.
+    \item Nad auditlogmi beží \textbf{pipeline}, ktorá v zadanom časovom okne zagreguje počet volaní a \textbf{zapíše štatistiky späť do DB}.
   \end{itemize}
   \vfill
-  \begin{block}{Tri komponenty}
-    \texttt{qr-frontend} \,$\;\to\;$\, \texttt{qr-backend} \,$\;\to\;$\, \texttt{qr-computation-module}
+  \begin{block}{Z toho vznikol monitoring framework}
+    Aplikácia dnes eviduje \textbf{datasety} (zdroj dát), \textbf{pipelines} (čo sa agreguje a kedy), \textbf{behy} (\texttt{JobRun}) a \textbf{alerty}\,-\,kostra je všeobecná, ale doménovo cieli na \emph{auditlogs} qr-blocky služieb.
   \end{block}
 \end{frame}
 
@@ -95,11 +97,24 @@
 	
 \end{tikzpicture}
   \begin{itemize}\small
-	\item \textbf{Synchrónna cesta:} prehliadač $\to$ API (CRUD a stav).
-	\item \textbf{Asynchrónna cesta:} API $\to$ fronta $\to$ worker $\to$ späť do API.
-	\item Každá služba má \textbf{vlastný proces a vlastný port}\,---\,nasaditeľné a škálovateľné samostatne.
+	\item \textbf{Synchrónna cesta:} prehliadač $\to$ API (CRUD nad datasetmi, pipelinami, stav behu).
+	\item \textbf{Asynchrónna cesta:} API $\to$ fronta $\to$ worker $\to$ API (PATCH stavu).
 \end{itemize}
 
+\end{frame}
+
+% ---------------------------------------------------------------
+\section{Thought process}
+\begin{frame}{Cesta k Big Data architektúre}
+  \begin{enumerate}
+    \item \textbf{Frontend volá backend}\,-\,naskenovanie QR $\to$ HTTP požiadavka, jednoduchá synchrónna cesta.
+    \item \textbf{Backend musí tvoriť objekty}\,-\,\texttt{Dataset}, \texttt{Pipeline}, \texttt{JobRun}, \texttt{Alert}; klasický REST + ODM.
+    \item Pri raste objemu volaní synchrónne spracovanie nestačí $\Rightarrow$ posun k \textbf{Big Data architektúre}: oddelenie zápisu, fronty a výpočtu.
+    \item \textbf{RabbitMQ ako buffer}\,-\,horizontálne škálovateľný, drží \textbf{veľký počet správ}.
+    \item \textbf{Computation module subscribuje} správy a spracúva ich \textbf{podľa konfigurácie}.
+    \item Pri extrémnych objemoch: \textbf{computation module per channel}\,-\,vlastná queue a vlastná skupina workerov pre každý RabbitMQ channel.
+    \item Deployment ako \textbf{KEDA job}\,-\,dynamické škálovanie podľa dĺžky fronty, napr. v \textbf{Azure} (AKS + KEDA).
+  \end{enumerate}
 \end{frame}
 
 % ---------------------------------------------------------------
@@ -129,7 +144,7 @@
     \item \textbf{Alert}\,-\,vyvolaný záznam (väzba na pipeline + run, \texttt{acknowledgedAt}).
   \end{itemize}
   \begin{block}{Pravidlo integrity}
-    Pipeline nemôže vzniknúť nad neexistujúcim datasetom\,-\,kontroluje sa pred uložením v handleri \texttt{POST /pipelines}.
+    Pipeline nemôže vzniknúť nad neexistujúcim datasetom\,-\,kontroluje sa pred uložením v handleri.
   \end{block}
 \end{frame}
 
@@ -146,6 +161,7 @@
         \item \texttt{PATCH /runs/:id} $\to$ \texttt{successful} / \texttt{error}.
       \end{enumerate}
     \item \textbf{Idempotencia}\,-\,upsert \texttt{ComputationJob} podľa \texttt{runId} + \texttt{receiveCount}.
+    \item \textbf{Škálovateľnosť}\,-\,viac inštancií modulu paralelne konzumuje z tej istej fronty; pri raste objemu možné nasadenie \textbf{instance per channel}.
     \item \textbf{Odolnosť}\,-\,reconnect s exponenciálnym backoffom, \texttt{prefetch(1)}, \texttt{ack}/\texttt{nack}.
   \end{itemize}
 \end{frame}
@@ -162,75 +178,30 @@
   \end{itemize}
 \end{frame}
 
-% ---------------------------------------------------------------
-\section{Pipeline}
-\begin{frame}[fragile]{Komunikácia: spustenie pipeline}
-  \centering
-\begin{tikzpicture}[node distance=0.6cm and 1.7cm]
-	\node[component] (ui) {Frontend};
-	\node[component, right=of ui] (api) {Backend API};
-	\node[queue,     right=of api] (q)   {computations};
-	\node[component, right=of q]   (w)   {Worker};
-	\node[store, below=1.4cm of api] (m) {MongoDB};
-	
-	% POST: arc nad oboma uzlami, label neprekrýva boxy
-	\draw[arr] (ui.north) to[out=75,in=105]
-	node[lab,above]{POST /pipelines/(id)/run} (api.north);
-	
-	% priame šípky
-	\draw[arr] (api) -- node[lab,left]{insert JobRun} (m);
-	\draw[arr] (api) -- node[lab,above]{enqueue} (q);
-	\draw[arr] (q)   -- node[lab,above]{consume}  (w);
-	
-	% PATCH: L-cesta NAD riadkom uzlov (vyhne sa q)
-	\draw[arr] (w.north) -- ++(0,0.6cm)
-	-- node[lab,above]{PATCH /runs/(id)} ($(api.north)+(0,0.6cm)$)
-	-- (api.north);
-	
-	% aggregate: L-cesta POD riadkom uzlov (vyhne sa q)
-	\draw[arrdash] (w.south) -- (w.south |- m.east)
-	-- node[lab,below]{aggregate} (m.east);
-\end{tikzpicture}
-  \vfill
-  \begin{itemize}\small
-    \item API vráti odpoveď \textbf{ihneď} po zaradení do fronty\,-\,žiadne dlhé HTTP požiadavky.
-    \item Pri \textbf{nedostupnom RabbitMQ} backend run uloží ako \texttt{error} a vráti \texttt{503}.
-  \end{itemize}
-\end{frame}
 
 % ---------------------------------------------------------------
-\section{Stav pipeline}
-\begin{frame}[fragile]{Stavový stroj behu a biznis pravidlá}
-  \centering
-  \begin{tikzpicture}[node distance=1.3cm,every node/.style={font=\small}]
-    \node[component,fill=red!5] (p) {pending};
-    \node[component,right=of p,fill=red!15] (r) {running};
-    \node[component,above right=0.3cm and 1.3cm of r,fill=green!15,draw=green!50!black] (s) {successful};
-    \node[component,below right=0.3cm and 1.3cm of r,fill=red!25,draw=red!70!black] (e) {error};
-    \draw[arr] (p) -- (r);
-    \draw[arr] (r) -- (s);
-    \draw[arr] (r) -- (e);
-  \end{tikzpicture}
-  \vfill
-  \begin{itemize}
-    \item Povolené prechody sú validované v \texttt{PATCH /runs/:id}\,-\,iné kombinácie vrátia \texttt{409}.
-    \item \textbf{Pipeline} sa dá spustiť len ak \texttt{active = true} (inak \texttt{409}).
-    \item \textbf{Alert} vznikne podľa \texttt{AlertRule.reportWhenState} pri prechode behu do daného stavu.
-  \end{itemize}
+\section{Zhrnutie}
+\begin{frame}{Zhrnutie architektúry}
+	\small
+	\begin{itemize}
+		\item \textbf{Server-side stavový model}\,-\,endpoint \texttt{PATCH /runs/:id} povoľuje iba validné prechody stavov; neplatná zmena vracia \texttt{409}. Pipeline sa spúšťa len pri \texttt{active = true}.
+		
+		\item \textbf{Oddelenie na tri služby}\,-\,frontend, API a computation modul fungujú nezávisle, takže výpočtové úlohy neblokujú HTTP vrstvu.
+		
+		\item \textbf{RabbitMQ s durable queue}\,-\,kombinácia \texttt{prefetch(1)} a \texttt{ack/nack} zabezpečuje spoľahlivé spracovanie úloh a prirodzený load balancing medzi workermi.
+		
+		\item \textbf{MongoDB + Mongoose + Joi}\,-\,dokumentový model dát dopĺňa dvojúrovňová validácia: Joi pre HTTP vstup a Mongoose pri ukladaní do databázy.
+		
+		\item \textbf{Next.js React Server Components}\,-\,server renderuje dátové výpisy priamo z API, klientské komponenty riešia len interakcie a polling stavu.
+	\end{itemize}
+	
+	\vfill
+	
+	\begin{block}{Výsledok}
+		Návrh predstavuje jednoduchý, ale škálovateľný monitoring framework pripravený na distribuované spracovanie veľkého objemu auditlogov.
+	\end{block}
 \end{frame}
 
-% ---------------------------------------------------------------
-\section{Designové rozhodnutia}
-\begin{frame}{Návrhové rozhodnutia}
-  \begin{itemize}
-    \item \textbf{Tri služby namiesto monolitu}\,-\,API zostáva responzívne, výpočet je odolný voči pomalým úlohám, dá sa nezávisle škálovať.
-    \item \textbf{RabbitMQ ako buffer}\,-\,durable fronta, \texttt{prefetch(1)}, manuálne ack/nack\,$\Rightarrow$\,žiadna strata úloh pri reštarte.
-    \item \textbf{MongoDB + Mongoose}\,-\,doménové entity sú prirodzene dokumentové, schémy v Mongoose dávajú validáciu a typovú istotu.
-    \item \textbf{Joi validácia + jednotné HTTP kódy}\,-\,400 / 404 / 409 / 503 podľa významu.
-    \item \textbf{Stavový stroj na serveri}\,-\,nedá sa „preskočiť“ priamo z \texttt{pending} do \texttt{successful}.
-    \item \textbf{Next.js RSC} na FE\,-\,výpisy sa renderujú serverom z API, klientské komponenty len pre akcie a polling stavu.
-  \end{itemize}
-\end{frame}
 
 % ---------------------------------------------------------------
 \begin{frame}

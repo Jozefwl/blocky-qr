@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.1.6)  14 MAY 2026 22:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.1.6)  15 MAY 2026 18:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1001,36 +1001,37 @@ dvips/cm-super/cm-super-t1.enc}] (./pipeline_monitor_beamer.toc) [2
 
 ]
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 6
-6.
+8.
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
-)
-LaTeX Font Info:    Trying to load font information for U+msa on input line 66.
+) [3
+
+]
+\openout4 = `pipeline_monitor_beamer.vrb'.
+
+
+(./pipeline_monitor_beamer.vrb
+LaTeX Font Info:    Trying to load font information for U+msa on input line 29.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 66.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 29.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on inp
-ut line 66.
+ut line 29.
 
 (/usr/share/texlive/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
 File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/ma
 thkerncmss.
-)
-[3
-
-]
-\openout4 = `pipeline_monitor_beamer.vrb'.
-
- (./pipeline_monitor_beamer.vrb) [4
+))
+[4
 
 ] [5
 
@@ -1040,25 +1041,11 @@ thkerncmss.
 
 ] [8
 
-]
-\openout4 = `pipeline_monitor_beamer.vrb'.
+] [9
 
-
-(./pipeline_monitor_beamer.vrb
-Overfull \hbox (16.56444pt too wide) in paragraph at lines 27--28
- [][] 
- []
-
-) [9
-
-]
-\openout4 = `pipeline_monitor_beamer.vrb'.
-
- (./pipeline_monitor_beamer.vrb) [10
+] [10
 
 ] [11
-
-] [12
 
 ]
 \tf@nav=\write6
@@ -1070,24 +1057,23 @@ Overfull \hbox (16.56444pt too wide) in paragraph at lines 27--28
 \tf@snm=\write8
 \openout8 = `pipeline_monitor_beamer.snm'.
 
-
-(./pipeline_monitor_beamer.aux)
+ (./pipeline_monitor_beamer.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `pipeline_monitor_beamer.out' has not changed
 .
-(rerunfilecheck)             Checksum: ABEACDF3C5FED35DB5A5D14AAC70B462;954.
+(rerunfilecheck)             Checksum: 26CA42C3F6B06DF2926A769017ECEFE8;841.
  ) 
 Here is how much of TeX's memory you used:
- 27479 strings out of 474222
- 548204 string characters out of 5748734
+ 27403 strings out of 474222
+ 547506 string characters out of 5748734
  1940975 words of memory out of 5000000
- 49138 multiletter control sequences out of 15000+600000
+ 49069 multiletter control sequences out of 15000+600000
  579006 words of font info for 88 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 128i,15n,123p,398b,859s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 128i,15n,123p,398b,845s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></us
 r/share/texmf/fonts/type1/public/cm-super/sfsi1095.pfb></usr/share/texmf/fonts/
 type1/public/cm-super/sfss0600.pfb></usr/share/texmf/fonts/type1/public/cm-supe
@@ -1099,10 +1085,10 @@ share/texmf/fonts/type1/public/cm-super/sfsx1095.pfb></usr/share/texmf/fonts/ty
 pe1/public/cm-super/sfsx1440.pfb></usr/share/texmf/fonts/type1/public/cm-super/
 sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/s
 hare/texmf/fonts/type1/public/cm-super/sftt1440.pfb>
-Output written on pipeline_monitor_beamer.pdf (12 pages, 301190 bytes).
+Output written on pipeline_monitor_beamer.pdf (11 pages, 307235 bytes).
 PDF statistics:
- 529 PDF objects out of 1000 (max. 8388607)
- 433 compressed objects within 5 object streams
- 34 named destinations out of 1000 (max. 500000)
- 277 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 507 PDF objects out of 1000 (max. 8388607)
+ 409 compressed objects within 5 object streams
+ 31 named destinations out of 1000 (max. 500000)
+ 305 words of extra memory for PDF output out of 10000 (max. 10000000)
 

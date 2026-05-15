@@ -1,17 +1,32 @@
-\frametitle{Stavový stroj behu a biznis pravidlá}
+\frametitle{Architektúra}
 \centering
-  \begin{tikzpicture}[node distance=1.3cm,every node/.style={font=\small}]
-    \node[component,fill=red!5] (p) {pending};
-    \node[component,right=of p,fill=red!15] (r) {running};
-    \node[component,above right=0.3cm and 1.3cm of r,fill=green!15,draw=green!50!black] (s) {successful};
-    \node[component,below right=0.3cm and 1.3cm of r,fill=red!25,draw=red!70!black] (e) {error};
-    \draw[arr] (p) -- (r);
-    \draw[arr] (r) -- (s);
-    \draw[arr] (r) -- (e);
-  \end{tikzpicture}
-  \vfill
-  \begin{itemize}
-    \item Povolené prechody sú validované v \texttt{PATCH /runs/:id}\,-\,iné kombinácie vrátia \texttt{409}.
-    \item \textbf{Pipeline} sa dá spustiť len ak \texttt{active = true} (inak \texttt{409}).
-    \item \textbf{Alert} vznikne podľa \texttt{AlertRule.reportWhenState} pri prechode behu do daného stavu.
-  \end{itemize}
+  \begin{tikzpicture}[node distance=1.0cm and 1.4cm]
+	
+	\node[component] (fe) {qr-frontend\\\scriptsize Next.js / React};
+	
+	\node[component, right=3cm of fe] (be) {qr-backend\\\scriptsize Express + Mongoose};
+	
+	\node[component, right=3cm of be] (wk) {qr-computation\\\scriptsize Node worker};
+	
+	\node[store, below=1.5cm of be] (db) {MongoDB};
+	
+	\node[queue, above=1.0cm of be] (mq) {computations queue};
+	
+	\draw[arr]   (fe) -- node[lab,above]{HTTP / JSON} (be);
+	
+	\draw[arr]   (be) -- node[lab,left]{publish} (mq);
+	
+	\draw[arr]   (mq) -- node[lab,right]{consume} (wk);
+	
+	\draw[arr]   (wk.south) to[bend left=20] node[lab,below]{PATCH /runs/(id)} (be.south east);
+	
+	\draw[arr]   (be) -- node[lab,right]{Mongoose ODM} (db);
+	
+	\draw[arrdash] (wk.south) to[bend left=45] node[lab,below]{aggregate auditlogs} (db.east);
+	
+\end{tikzpicture}
+  \begin{itemize}\small
+	\item \textbf{Synchrónna cesta:} prehliadač $\to$ API (CRUD nad datasetmi, pipelinami, stav behu).
+	\item \textbf{Asynchrónna cesta:} API $\to$ fronta $\to$ worker $\to$ API (PATCH stavu).
+\end{itemize}
+
